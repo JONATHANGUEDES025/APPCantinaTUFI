@@ -2,7 +2,10 @@
 cd /d "%~dp0"
 
 set "PYTHON_CMD="
-set "LOG_FILE=%~dp0erro_cantina.txt"
+set "LOG_DIR=%~dp0dados\logs"
+set "LOG_FILE=%LOG_DIR%\erro_cantina.txt"
+
+if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 
 echo ===== Cantina TUFI ===== > "%LOG_FILE%"
 echo Pasta: %~dp0 >> "%LOG_FILE%"
