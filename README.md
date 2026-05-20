@@ -2,12 +2,12 @@
 
 Sistema local de vendas e estoque para cantina/loja, feito em Python com servidor web local e banco SQLite.
 
-## Como abrir
+## Como baixar em outro computador
 
-No Windows, use um destes arquivos:
-
-- `Cantina TUFI.vbs`: abre o sistema em segundo plano.
-- `ABRIR CANTINA TUFI.bat`: abre pelo terminal e mostra mensagens se houver erro.
+1. Clique em **Code** no GitHub.
+2. Clique em **Download ZIP**.
+3. Extraia a pasta ZIP.
+4. No Windows, abra **Cantina TUFI.vbs** ou **ABRIR CANTINA TUFI.bat**.
 
 Depois acesse:
 
@@ -30,8 +30,11 @@ http://127.0.0.1:8767/
 
 ## Arquivos importantes
 
-Mantenha `cantina_pro.py` junto com os arquivos `cantina_pro.py.gz.part1`, `cantina_pro.py.gz.part2` e `cantina_pro.py.gz.part3`. Eles fazem parte do aplicativo principal.
+- `cantina_pro.py`: aplicativo principal completo.
+- `iniciar_cantina.py`: inicializador do aplicativo.
+- `Cantina TUFI.vbs`: abre o aplicativo sem deixar o terminal aparente.
+- `ABRIR CANTINA TUFI.bat`: abre pelo terminal e mostra mensagens caso haja erro.
 
 ## Observacao
 
-O banco `cantina_tufi.db` e os backups nao sao enviados para o GitHub, porque sao dados locais do cliente.
+O banco `dados/cantina_tufi.db`, logs e backups sao dados locais do cliente e sao criados automaticamente no computador onde o aplicativo for aberto.
