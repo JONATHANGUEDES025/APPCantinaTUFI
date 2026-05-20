@@ -1,7 +1,8 @@
 __pycache__/
 *.pyc
 
-# Banco local e backups
+# Banco local, logs e backups
+dados/
 *.db
 *.sqlite
 cantina_tufi_backup_*.db
