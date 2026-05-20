@@ -32,40 +32,48 @@ jobs:
           payload = ''.join(path.read_text(encoding='utf-8').strip() for path in parts)
           source = gzip.decompress(base64.b64decode(payload)).decode('utf-8')
 
-          old_paths = '''APP_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(APP_DIR, "cantina_tufi.db")
-HOST = "127.0.0.1"
-PORT = 8767
-URL = f"http://{HOST}:{PORT}/"
-LOG_FILE = os.path.join(APP_DIR, "cantina_pro_log.txt")'''
-          new_paths = '''APP_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.dirname(APP_DIR) if os.path.basename(APP_DIR).lower() == "app" else APP_DIR
-DATA_DIR = os.path.join(PROJECT_DIR, "dados")
-LOG_DIR = os.path.join(DATA_DIR, "logs")
-BACKUP_DIR = os.path.join(DATA_DIR, "backups")
-os.makedirs(DATA_DIR, exist_ok=True)
-os.makedirs(LOG_DIR, exist_ok=True)
-os.makedirs(BACKUP_DIR, exist_ok=True)
-DB_PATH = os.path.join(DATA_DIR, "cantina_tufi.db")
-HOST = "127.0.0.1"
-PORT = 8767
-URL = f"http://{HOST}:{PORT}/"
-LOG_FILE = os.path.join(LOG_DIR, "cantina_pro_log.txt")'''
+          old_paths = '\n'.join([
+              'APP_DIR = os.path.dirname(os.path.abspath(__file__))',
+              'DB_PATH = os.path.join(APP_DIR, "cantina_tufi.db")',
+              'HOST = "127.0.0.1"',
+              'PORT = 8767',
+              'URL = f"http://{HOST}:{PORT}/"',
+              'LOG_FILE = os.path.join(APP_DIR, "cantina_pro_log.txt")',
+          ])
+          new_paths = '\n'.join([
+              'APP_DIR = os.path.dirname(os.path.abspath(__file__))',
+              'PROJECT_DIR = os.path.dirname(APP_DIR) if os.path.basename(APP_DIR).lower() == "app" else APP_DIR',
+              'DATA_DIR = os.path.join(PROJECT_DIR, "dados")',
+              'LOG_DIR = os.path.join(DATA_DIR, "logs")',
+              'BACKUP_DIR = os.path.join(DATA_DIR, "backups")',
+              'os.makedirs(DATA_DIR, exist_ok=True)',
+              'os.makedirs(LOG_DIR, exist_ok=True)',
+              'os.makedirs(BACKUP_DIR, exist_ok=True)',
+              'DB_PATH = os.path.join(DATA_DIR, "cantina_tufi.db")',
+              'HOST = "127.0.0.1"',
+              'PORT = 8767',
+              'URL = f"http://{HOST}:{PORT}/"',
+              'LOG_FILE = os.path.join(LOG_DIR, "cantina_pro_log.txt")',
+          ])
           if 'DATA_DIR = os.path.join(PROJECT_DIR, "dados")' not in source and old_paths in source:
               source = source.replace(old_paths, new_paths, 1)
 
-          old_backup = '''def backup_database():
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = os.path.join(APP_DIR, f"cantina_tufi_backup_{timestamp}.db")
-    if os.path.exists(DB_PATH):
-        shutil.copy2(DB_PATH, backup_path)
-    return backup_path'''
-          new_backup = '''def backup_database():
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = os.path.join(BACKUP_DIR, f"cantina_tufi_backup_{timestamp}.db")
-    if os.path.exists(DB_PATH):
-        shutil.copy2(DB_PATH, backup_path)
-    return backup_path'''
+          old_backup = '\n'.join([
+              'def backup_database():',
+              '    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")',
+              '    backup_path = os.path.join(APP_DIR, f"cantina_tufi_backup_{timestamp}.db")',
+              '    if os.path.exists(DB_PATH):',
+              '        shutil.copy2(DB_PATH, backup_path)',
+              '    return backup_path',
+          ])
+          new_backup = '\n'.join([
+              'def backup_database():',
+              '    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")',
+              '    backup_path = os.path.join(BACKUP_DIR, f"cantina_tufi_backup_{timestamp}.db")',
+              '    if os.path.exists(DB_PATH):',
+              '        shutil.copy2(DB_PATH, backup_path)',
+              '    return backup_path',
+          ])
           if 'backup_path = os.path.join(BACKUP_DIR' not in source and old_backup in source:
               source = source.replace(old_backup, new_backup, 1)
 
