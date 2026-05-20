@@ -5,7 +5,9 @@ import traceback
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_FILE = os.path.join(APP_DIR, "cantina_pro.py")
-LOG_FILE = os.path.join(APP_DIR, "erro_cantina.txt")
+LOG_DIR = os.path.join(APP_DIR, "dados", "logs")
+LOG_FILE = os.path.join(LOG_DIR, "erro_cantina.txt")
+os.makedirs(LOG_DIR, exist_ok=True)
 
 
 def show_error(message):
@@ -33,4 +35,4 @@ except Exception:
         fallback = os.path.join(APP_DIR, "erro_inicializacao.txt")
         with open(fallback, "w", encoding="utf-8") as log:
             log.write(details)
-    show_error("O aplicativo nao conseguiu abrir. O erro foi salvo em erro_cantina.txt.")
+    show_error("O aplicativo nao conseguiu abrir. O erro foi salvo em dados\\logs\\erro_cantina.txt.")
