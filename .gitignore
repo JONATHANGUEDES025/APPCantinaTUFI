@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+
+# Banco local e backups
+*.db
+*.sqlite
+cantina_tufi_backup_*.db
+
+# Logs e arquivos temporarios
+*.log
+*_log.txt
+erro_cantina.txt
+start_stdout.txt
+start_stderr.txt
+
+# Versoes antigas/testes locais
+cantina_tufi_corrigido.py
+cantina_web.py
+
+gitrepo/
+.git/
