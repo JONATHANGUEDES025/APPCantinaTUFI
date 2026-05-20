@@ -28,6 +28,10 @@ http://127.0.0.1:8767/
 - Relatorios
 - Botao para zerar sistema antes da entrega
 
+## Arquivos importantes
+
+Mantenha `cantina_pro.py` junto com os arquivos `cantina_pro.py.gz.part1`, `cantina_pro.py.gz.part2` e `cantina_pro.py.gz.part3`. Eles fazem parte do aplicativo principal.
+
 ## Observacao
 
 O banco `cantina_tufi.db` e os backups nao sao enviados para o GitHub, porque sao dados locais do cliente.
