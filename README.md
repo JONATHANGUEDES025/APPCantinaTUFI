@@ -2,18 +2,25 @@
 
 Sistema local de vendas e estoque para cantina/loja, feito em Python com servidor web local e banco SQLite.
 
-## Como baixar em outro computador
+## Como abrir
 
-1. Clique em **Code** no GitHub.
-2. Clique em **Download ZIP**.
-3. Extraia a pasta ZIP.
-4. No Windows, abra **Cantina TUFI.vbs** ou **ABRIR CANTINA TUFI.bat**.
+No Windows, use um destes arquivos:
+
+- `Cantina TUFI.vbs`: abre o sistema em segundo plano.
+- `ABRIR CANTINA TUFI.bat`: abre pelo terminal e mostra mensagens se houver erro.
 
 Depois acesse:
 
 ```text
 http://127.0.0.1:8767/
 ```
+
+## Como baixar em outro computador
+
+1. Clique em **Code** no GitHub.
+2. Clique em **Download ZIP**.
+3. Extraia a pasta ZIP.
+4. Abra `Cantina TUFI.vbs` ou `ABRIR CANTINA TUFI.bat`.
 
 ## Funcionalidades
 
@@ -28,13 +35,18 @@ http://127.0.0.1:8767/
 - Relatorios
 - Botao para zerar sistema antes da entrega
 
-## Arquivos importantes
+## Organizacao do projeto
 
-- `cantina_pro.py`: aplicativo principal completo.
-- `iniciar_cantina.py`: inicializador do aplicativo.
-- `Cantina TUFI.vbs`: abre o aplicativo sem deixar o terminal aparente.
-- `ABRIR CANTINA TUFI.bat`: abre pelo terminal e mostra mensagens caso haja erro.
+- `cantina_pro.py`: entrada principal do aplicativo.
+- `iniciar_cantina.py`: inicializador com tratamento de erro.
+- `app/config.py`: caminhos, porta, logs e configuracoes.
+- `app/database.py`: conexao SQLite e criacao das tabelas.
+- `app/validators.py`: validacao de entradas, numeros, datas, pagamentos e estoque.
+- `app/services.py`: regras de negocio de produtos, vendas, fiados, estoque e relatorios.
+- `app/server.py`: rotas web e entrega de arquivos da tela.
+- `app/templates/index.html`: estrutura da tela.
+- `app/static/styles.css`: visual do aplicativo.
+- `app/static/app.js`: interacoes da tela.
+- `dados/`: banco local, logs e backups gerados no computador do cliente.
 
-## Observacao
-
-O banco `dados/cantina_tufi.db`, logs e backups sao dados locais do cliente e sao criados automaticamente no computador onde o aplicativo for aberto.
+O banco `dados/cantina_tufi.db` e os backups sao dados locais do cliente e nao precisam ir para o GitHub.

@@ -1,0 +1,1 @@
+bootNav(); showPage('dashboard');
