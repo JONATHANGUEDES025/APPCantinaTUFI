@@ -46,7 +46,12 @@ http://127.0.0.1:8767/
 - `app/server.py`: rotas web e entrega de arquivos da tela.
 - `app/templates/index.html`: estrutura da tela.
 - `app/static/styles.css`: visual do aplicativo.
-- `app/static/app.js`: interacoes da tela.
+- `app/static/app.js`: inicializacao da tela.
+- `app/static/js/core.js`: navegacao, chamadas internas e componentes reutilizaveis.
+- `app/static/js/products.js`: tela de produtos e cadastro.
+- `app/static/js/checkout.js`: caixa, carrinho e pagamento.
+- `app/static/js/history_fiados.js`: historico de vendas e fiados.
+- `app/static/js/stock_reports_system.js`: estoque, relatorios e configuracoes do sistema.
 - `dados/`: banco local, logs e backups gerados no computador do cliente.
 
 O banco `dados/cantina_tufi.db` e os backups sao dados locais do cliente e nao precisam ir para o GitHub.
