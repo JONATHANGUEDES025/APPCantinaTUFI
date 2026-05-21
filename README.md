@@ -15,6 +15,21 @@ Depois acesse:
 http://127.0.0.1:8767/
 ```
 
+## Como acessar pelo iPad ou celular na mesma rede
+
+1. Abra o aplicativo no computador Windows.
+2. Deixe o computador ligado e conectado ao mesmo Wi-Fi do iPad.
+3. Descubra o IPv4 do computador. No Windows, abra o Prompt de Comando e digite `ipconfig`.
+4. No iPad, abra o Safari e acesse `http://IP-DO-COMPUTADOR:8767/`.
+
+Exemplo:
+
+```text
+http://192.168.0.105:8767/
+```
+
+Se nao abrir, confira se o Windows pediu permissao no firewall e permita o Python em redes privadas.
+
 ## Como baixar em outro computador
 
 1. Clique em **Code** no GitHub.
