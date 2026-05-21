@@ -5,6 +5,7 @@ const modalRoot=document.getElementById('modalRoot');
 const operatorLabel=document.getElementById('operatorLabel');
 [
   'pSearch','pCategory','pStatus','productsTable','productDetails',
+  'operatorName',
   'f_name','f_category','f_price','f_cost','f_unit','f_min','f_qty','f_active',
   's_type','s_qty_label','s_help','s_qty','s_notes',
   'saleSearch','saleCat','saleCategories','catalog','cart','payment','totals',
@@ -21,8 +22,9 @@ const operatorLabel=document.getElementById('operatorLabel');
 const pages=[
   ['dashboard','Dashboard'],['sale','Caixa'],['products','Produtos'],['sales','Vendas'],['fiados','Fiados'],['stock','Estoque'],['reports','Relatorios'],['system','Sistema']
 ];
-const state={page:'dashboard',products:[],categories:[],cart:[],selectedProduct:null,operator:localStorage.getItem('cantina.operator')||'Operador'};
-operatorLabel.textContent=state.operator;
+const savedOperator=(localStorage.getItem('cantina.operator')||'').trim();
+const state={page:'dashboard',products:[],categories:[],cart:[],selectedProduct:null,operator:savedOperator==='Operador'?'':savedOperator};
+operatorLabel.textContent=state.operator||'Nao informado';
 function bootNav(){nav.innerHTML=pages.map(p=>`<button data-page="${p[0]}">${p[1]}</button>`).join(''); mobileNav.innerHTML=pages.map(p=>`<option value="${p[0]}">${p[1]}</option>`).join(''); nav.querySelectorAll('button').forEach(b=>b.onclick=()=>showPage(b.dataset.page)); mobileNav.onchange=()=>showPage(mobileNav.value)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jsarg(v){return esc(JSON.stringify(String(v??'')))}
@@ -38,3 +40,9 @@ async function showPage(page){try{activate(page); if(page==='dashboard')await re
 function table(headers,rows){if(!rows.length)return '<div class="empty">Nenhum registro encontrado.</div>'; return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`}
 async function refreshMeta(){state.categories=await api('/api/categories')}
 function statusPill(p){if(!p.active)return'<span class="pill bad">Inativo</span>'; if(p.quantity<=0)return'<span class="pill bad">Sem estoque</span>'; if(p.quantity<=p.min_stock)return'<span class="pill warn">Estoque baixo</span>'; return'<span class="pill ok">Ativo</span>'}
+function modal(html){modalRoot.innerHTML=`<div class="modal-backdrop"><div class="modal">${html}</div></div>`}
+function closeModal(){modalRoot.innerHTML=''}
+function setOperator(name){const clean=String(name||'').trim(); if(!clean){alert('Informe o nome do operador.'); return false} state.operator=clean; localStorage.setItem('cantina.operator',clean); operatorLabel.textContent=clean; const saleOpInput=document.getElementById('saleOp'); if(saleOpInput)saleOpInput.value=clean; return true}
+function saveOperatorFromModal(){if(setOperator(operatorName.value)){closeModal(); toast('Operador definido')}}
+function showOperatorModal(required=true){modal(`<div class="modal-head"><h2>Identificacao do operador</h2>${required?'':'<button class="ghost" onclick="closeModal()">Fechar</button>'}</div><p class="muted">Informe quem esta usando o caixa. Esse nome aparece nas vendas, estoque e relatorios.</p><div class="field"><label>Nome do operador</label><input id="operatorName" value="${esc(state.operator)}" placeholder="Ex.: Jonathan"></div><div class="toolbar" style="margin-top:14px"><button class="primary" onclick="saveOperatorFromModal()">Entrar no sistema</button>${required?'':'<button class="secondary" onclick="closeModal()">Cancelar</button>'}</div>`); setTimeout(()=>operatorName?.focus(),30)}
+function ensureOperator(){if(!state.operator)showOperatorModal(true)}
