@@ -6,8 +6,8 @@ Sistema local de vendas e estoque para cantina/loja, feito em Python com servido
 
 No Windows, use um destes arquivos:
 
-- `Cantina TUFI.vbs`: abre o sistema em segundo plano.
-- `ABRIR CANTINA TUFI.bat`: abre pelo terminal e mostra mensagens se houver erro.
+- `Cantina TUFI.vbs`: use este no dia a dia. Ele abre o sistema sem deixar a tela preta do terminal aberta.
+- `ABRIR CANTINA TUFI.bat`: use quando quiser testar ou quando o app nao abrir. Ele mostra mensagens e salva erros em `dados/logs/erro_cantina.txt`.
 
 Depois acesse:
 
