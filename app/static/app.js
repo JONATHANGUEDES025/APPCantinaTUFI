@@ -1,1 +1,3 @@
-bootNav(); showPage('dashboard');
+bootNav();
+showPage('dashboard');
+ensureOperator();
