@@ -11,7 +11,10 @@
 <div class="app">
   <aside class="sidebar">
     <div class="brand">Cantina TUFI<small>Gestao de vendas e estoque</small></div>
-    <div class="operator">Operador: <b id="operatorLabel">Operador</b></div>
+    <div class="operator">
+      <span>Operador: <b id="operatorLabel">Nao informado</b></span>
+      <button type="button" onclick="showOperatorModal(false)">Trocar</button>
+    </div>
     <select class="mobile-nav" id="mobileNav"></select>
     <div class="nav" id="nav"></div>
   </aside>
