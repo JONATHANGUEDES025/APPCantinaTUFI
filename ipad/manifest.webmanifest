@@ -1,0 +1,19 @@
+{
+  "name": "Cantina TUFI iPad",
+  "short_name": "Cantina TUFI",
+  "description": "Aplicativo offline de vendas, estoque e fiados para iPad.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f8fb",
+  "theme_color": "#0b5f8b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
