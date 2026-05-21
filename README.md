@@ -1,8 +1,32 @@
 # Cantina TUFI
 
-Sistema local de vendas e estoque para cantina/loja, feito em Python com servidor web local e banco SQLite.
+Sistema de vendas e estoque para cantina/loja. O projeto tem duas formas de uso:
 
-## Como abrir
+- **Windows com servidor local:** versao completa para rodar no computador da loja.
+- **iPad/celular online:** versao instalavel pelo Safari, sem depender do PC ligado depois de instalada.
+
+## Versao iPad, celular ou outro PC
+
+A versao do iPad esta na pasta `ipad/` e foi feita como aplicativo web instalavel.
+
+Depois que o GitHub Pages estiver ativado no repositorio, abra no Safari do iPad:
+
+```text
+https://jonathanguedes025.github.io/GuedesADS/ipad/
+```
+
+No iPad:
+
+1. Abra o link no Safari.
+2. Toque no botao **Compartilhar**.
+3. Escolha **Adicionar a Tela de Inicio**.
+4. Abra pelo icone **Cantina TUFI**.
+
+Os dados dessa versao ficam salvos no proprio iPad. Use **Sistema > Exportar backup** com frequencia.
+
+Para ativar o GitHub Pages: entre no repositorio no GitHub, abra **Settings > Pages**, selecione **Deploy from a branch**, escolha `main` e a pasta `/root`, depois salve.
+
+## Como abrir no Windows
 
 No Windows, use um destes arquivos:
 
@@ -15,7 +39,9 @@ Depois acesse:
 http://127.0.0.1:8767/
 ```
 
-## Como acessar pelo iPad ou celular na mesma rede
+## Como acessar pelo iPad ou celular na mesma rede do PC
+
+Essa opcao usa o app do Windows pelo Wi-Fi da loja.
 
 1. Abra o aplicativo no computador Windows.
 2. Deixe o computador ligado e conectado ao mesmo Wi-Fi do iPad.
@@ -48,25 +74,27 @@ Se nao abrir, confira se o Windows pediu permissao no firewall e permita o Pytho
 - Desfazer ultima movimentacao manual de estoque
 - Historico de vendas
 - Relatorios
-- Botao para zerar sistema antes da entrega
+- Backup, importacao e zerar sistema antes da entrega
+- Versao iPad instalavel pelo Safari
 
 ## Organizacao do projeto
 
-- `cantina_pro.py`: entrada principal do aplicativo.
+- `cantina_pro.py`: entrada principal do aplicativo Windows.
 - `iniciar_cantina.py`: inicializador com tratamento de erro.
 - `app/config.py`: caminhos, porta, logs e configuracoes.
 - `app/database.py`: conexao SQLite e criacao das tabelas.
 - `app/validators.py`: validacao de entradas, numeros, datas, pagamentos e estoque.
 - `app/services.py`: regras de negocio de produtos, vendas, fiados, estoque e relatorios.
 - `app/server.py`: rotas web e entrega de arquivos da tela.
-- `app/templates/index.html`: estrutura da tela.
-- `app/static/styles.css`: visual do aplicativo.
-- `app/static/app.js`: inicializacao da tela.
+- `app/templates/index.html`: estrutura da tela Windows.
+- `app/static/styles.css`: visual do aplicativo Windows.
+- `app/static/app.js`: inicializacao da tela Windows.
 - `app/static/js/core.js`: navegacao, chamadas internas e componentes reutilizaveis.
 - `app/static/js/products.js`: tela de produtos e cadastro.
 - `app/static/js/checkout.js`: caixa, carrinho e pagamento.
 - `app/static/js/history_fiados.js`: historico de vendas e fiados.
 - `app/static/js/stock_reports_system.js`: estoque, relatorios e configuracoes do sistema.
+- `ipad/`: versao online instalavel para iPad, celular e navegador.
 - `dados/`: banco local, logs e backups gerados no computador do cliente.
 
 O banco `dados/cantina_tufi.db` e os backups sao dados locais do cliente e nao precisam ir para o GitHub.
