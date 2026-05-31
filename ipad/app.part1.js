@@ -1,6 +1,7 @@
 const DB_NAME = "cantina_tufi_ipad_db";
-const DB_VERSION = 1;
-const STORE_NAMES = ["products", "sales", "stock_movements"];
+const DB_VERSION = 2;
+const STORE_NAMES = ["products", "sales", "stock_movements", "house_debtors"];
+const DEFAULT_CATEGORIES = ["Salgados", "Bolos", "Doces", "Guarana", "Bebidas", "Sucos", "Refrigerantes"];
 
 const main = document.getElementById("main");
 const nav = document.getElementById("nav");
@@ -48,6 +49,10 @@ function openDatabase() {
       if (!db.objectStoreNames.contains("stock_movements")) {
         const store = db.createObjectStore("stock_movements", { keyPath: "id", autoIncrement: true });
         store.createIndex("productId", "productId", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("house_debtors")) {
+        const store = db.createObjectStore("house_debtors", { keyPath: "id", autoIncrement: true });
+        store.createIndex("name", "name", { unique: false });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -186,15 +191,22 @@ function paymentPill(sale) {
 
 async function refreshData() {
   state.products = (await all("products")).sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name));
-  state.categories = [...new Set(state.products.map(product => product.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const customCategories = state.products
+    .map(product => product.category)
+    .filter(Boolean)
+    .filter(category => !DEFAULT_CATEGORIES.some(defaultCategory => debtorKey(defaultCategory) === debtorKey(category)));
+  state.categories = [...DEFAULT_CATEGORIES, ...new Set(customCategories)].sort((a, b) => {
+    const leftDefault = DEFAULT_CATEGORIES.indexOf(a);
+    const rightDefault = DEFAULT_CATEGORIES.indexOf(b);
+    if (leftDefault >= 0 && rightDefault >= 0) return leftDefault - rightDefault;
+    if (leftDefault >= 0) return -1;
+    if (rightDefault >= 0) return 1;
+    return a.localeCompare(b);
+  });
+}
+
+async function listHouseDebtors() {
+  return (await all("house_debtors")).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function setOperator(name) {
-  const clean = cleanText(name, 80);
-  if (!clean) {
-    alert("Informe o nome do operador.");
-    return false;
-  }
-  state.operator = clean;
-  localStorage.setItem("cantina.ipad.operator", clean);
-  operatorButton.textContent = clean;
