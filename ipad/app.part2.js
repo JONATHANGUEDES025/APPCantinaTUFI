@@ -1,3 +1,11 @@
+  const clean = cleanText(name, 80);
+  if (!clean) {
+    alert("Informe o nome do operador.");
+    return false;
+  }
+  state.operator = clean;
+  localStorage.setItem("cantina.ipad.operator", clean);
+  operatorButton.textContent = clean;
   const saleOperator = document.getElementById("saleOperator");
   if (saleOperator) saleOperator.value = clean;
   return true;
@@ -154,7 +162,7 @@ function renderProductsTable() {
       <td>${esc(product.name)}</td>
       <td>${esc(product.category)}</td>
       <td>${money(product.price)}</td>
-      <td>${product.quantity} / min ${product.minStock}</td>
+      <td>${product.quantity} atual / alerta ${product.minStock}</td>
       <td>${statusPill(product)}</td>
       <td class="right">
         <button class="secondary" onclick="openStockForm(${product.id})">Estoque</button>
@@ -168,6 +176,10 @@ function renderProductsTable() {
 
 function openProductForm(id = null) {
   const product = id ? state.products.find(item => item.id === id) : null;
+  const selectedCategory = product?.category || DEFAULT_CATEGORIES[0];
+  const categoryOptions = [...new Set([...state.categories, selectedCategory].filter(Boolean))]
+    .map(category => `<option value="${esc(category)}" ${category === selectedCategory ? "selected" : ""}>${esc(category)}</option>`)
+    .join("");
   modal(`
     <div class="modal-head">
       <h2>${id ? "Editar produto" : "Novo produto"}</h2>
@@ -175,26 +187,26 @@ function openProductForm(id = null) {
     </div>
     <div class="form-grid">
       <div class="field"><label>Nome</label><input id="pName" value="${esc(product?.name || "")}"></div>
-      <div class="field"><label>Categoria</label><input id="pCategory" value="${esc(product?.category || "")}"></div>
+      <div class="field">
+        <label>Categoria</label>
+        <select id="pCategorySelect" onchange="toggleCustomCategory()">
+          ${categoryOptions}
+          <option value="__custom__">+ Nova categoria</option>
+        </select>
+        <small>Use uma categoria pronta ou crie uma nova para organizar o caixa.</small>
+      </div>
+      <div class="field full hidden" id="customCategoryWrap">
+        <label>Nova categoria</label>
+        <input id="pCategoryCustom" placeholder="Ex.: Marmitas, Lanches, Sorvetes">
+      </div>
       <div class="field"><label>Preco de venda</label><input id="pPrice" inputmode="decimal" value="${product?.price ?? ""}"></div>
       <div class="field"><label>Custo</label><input id="pCost" inputmode="decimal" value="${product?.cost ?? "0"}"></div>
       <div class="field"><label>Unidade</label><select id="pUnit">${["Unidade", "Pacote", "Garrafa", "Lata", "Fatia", "Kg", "Litro"].map(unit => `<option ${product?.unit === unit ? "selected" : ""}>${unit}</option>`).join("")}</select></div>
-      <div class="field"><label>Estoque minimo</label><input id="pMin" inputmode="numeric" value="${product?.minStock ?? 0}"></div>
-      <div class="field"><label>Quantidade</label><input id="pQty" inputmode="numeric" value="${product?.quantity ?? 0}"></div>
-      <label class="check-field"><input type="checkbox" id="pActive" ${product?.active === false ? "" : "checked"}><span>Ativo para venda</span></label>
-    </div>
-    <div class="toolbar" style="margin-top:14px">
-      <button class="primary" onclick="saveProduct(${id || "null"})">Salvar produto</button>
-      <button class="secondary" onclick="closeModal()">Cancelar</button>
-    </div>
-  `);
-}
-
-async function saveProduct(id = null) {
-  try {
-    const name = cleanText(document.getElementById("pName").value, 100);
-    const category = cleanText(document.getElementById("pCategory").value, 70);
-    if (!name || !category) throw new Error("Preencha nome e categoria.");
-    const now = nowIso();
-    const product = {
-      id: id || undefined,
+      <div class="field">
+        <label>Quantidade em estoque agora</label>
+        <input id="pQty" inputmode="numeric" value="${product?.quantity ?? 0}">
+        <small>Coloque quantas unidades existem hoje.</small>
+      </div>
+      <div class="field">
+        <label>Alerta de estoque minimo</label>
+        <input id="pMin" inputmode="numeric" value="${product?.minStock ?? 0}">
