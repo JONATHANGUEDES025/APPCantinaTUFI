@@ -147,6 +147,11 @@ th { background: #edf6fb; color: var(--brand); font-size: 12px; text-transform: 
   text-transform: uppercase;
   letter-spacing: .04em;
 }
+.field small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
 .check-field { display: flex; gap: 10px; align-items: center; padding: 10px 0; }
 .check-field input { width: auto; }
 
@@ -209,6 +214,7 @@ th { background: #edf6fb; color: var(--brand); font-size: 12px; text-transform: 
 .modal.small { width: min(520px, 100%); }
 .modal-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
 .modal-head h2 { margin: 0; color: var(--brand); }
+.receipt { display: grid; gap: 8px; }
 .toast { position: fixed; right: 18px; bottom: 18px; background: var(--brand); color: #fff; border-radius: 12px; padding: 13px 16px; box-shadow: var(--shadow); opacity: 0; transform: translateY(8px); transition: .2s; z-index: 70; }
 .toast.show { opacity: 1; transform: translateY(0); }
 .hidden { display: none !important; }
@@ -240,4 +246,25 @@ th { background: #edf6fb; color: var(--brand); font-size: 12px; text-transform: 
 
 @media (max-width: 480px) {
   .catalog { grid-template-columns: 1fr; }
+}
+
+@media print {
+  body { background: #fff; }
+  body * { visibility: hidden; }
+  .modal-backdrop, .modal-backdrop * { visibility: visible; }
+  .modal-backdrop {
+    position: absolute;
+    inset: 0;
+    display: block;
+    background: #fff;
+    padding: 0;
+  }
+  .modal {
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .no-print { display: none !important; }
 }
