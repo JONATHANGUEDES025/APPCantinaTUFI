@@ -1,3 +1,40 @@
+      <button class="secondary" onclick="closeModal()">Fechar</button>
+    </div>
+  `);
+}
+
+async function renderSales() {
+  const sales = (await all("sales")).sort((a, b) => new Date(b.date) - new Date(a.date));
+  main.innerHTML = title("Vendas", "Historico salvo neste iPad.", `<button class="secondary" onclick="renderSales()">Atualizar</button>`) + `
+    <div class="card">
+      <div class="toolbar" style="margin-bottom:12px">
+        <input id="saleFilter" placeholder="Buscar por cliente, operador ou numero">
+        <input id="saleFrom" type="date">
+        <input id="saleTo" type="date">
+        <select id="saleStatus"><option value="all">Todas</option><option value="ativa">Ativas</option><option value="cancelada">Canceladas</option></select>
+      </div>
+      <div id="salesTable"></div>
+    </div>
+  `;
+  document.getElementById("saleFrom").value = "";
+  document.getElementById("saleTo").value = "";
+  ["saleFilter", "saleFrom", "saleTo", "saleStatus"].forEach(id => document.getElementById(id).addEventListener("input", () => renderSalesTable(sales)));
+  renderSalesTable(sales);
+}
+
+function renderSalesTable(sales) {
+  const search = cleanText(document.getElementById("saleFilter").value, 120).toLowerCase();
+  const from = document.getElementById("saleFrom").value;
+  const to = document.getElementById("saleTo").value;
+  const status = document.getElementById("saleStatus").value;
+  const rows = sales.filter(sale => {
+    const date = sale.date.slice(0, 10);
+    const searchMatch = !search || [sale.id, sale.customerName, sale.debtorName, sale.operatorName].join(" ").toLowerCase().includes(search);
+    return searchMatch && (!from || date >= from) && (!to || date <= to) && (status === "all" || sale.status === status);
+  }).map(sale => `
+    <tr>
+      <td>#${sale.id}</td>
+      <td>${dateTime(sale.date)}</td>
       <td>${money(sale.total)}</td>
       <td>${paymentPill(sale)}</td>
       <td>${esc(sale.customerName || sale.debtorName || "-")}</td>
@@ -55,6 +92,7 @@ async function cancelSale(id) {
 
 async function renderFiados() {
   const sales = (await all("sales")).filter(sale => sale.paymentMethod === "Fiado" && sale.status === "ativa");
+  const houseDebtors = await listHouseDebtors();
   const groups = new Map();
   sales.filter(sale => !sale.settledAt).forEach(sale => {
     const key = debtorKey(sale.debtorName);
@@ -65,12 +103,70 @@ async function renderFiados() {
   });
   state.fiadoGroups = [...groups.values()].sort((a, b) => a.debtorName.localeCompare(b.debtorName));
   const settled = sales.filter(sale => sale.settledAt).sort((a, b) => new Date(b.settledAt) - new Date(a.settledAt));
-  main.innerHTML = title("Fiados", "Compras em aberto somadas pelo mesmo devedor.", `<button class="secondary" onclick="renderFiados()">Atualizar</button>`) + `
+  const houseRows = houseDebtors.map(debtor => {
+    const group = groups.get(debtorKey(debtor.name));
+    return `<tr><td>${esc(debtor.name)}</td><td>${group ? money(group.total) : money(0)}</td><td class="right"><button class="primary" onclick="openHouseDebtorForm(${debtor.id})">Editar</button><button class="ghost" onclick="deleteHouseDebtor(${debtor.id})">Excluir</button></td></tr>`;
+  });
+  main.innerHTML = title("Fiados", "Compras em aberto somadas pelo mesmo devedor.", `<button class="primary" onclick="openHouseDebtorForm()">Novo devedor da TUFI</button><button class="secondary" onclick="renderFiados()">Atualizar</button>`) + `
     <section class="grid two">
       <div class="card"><h2>Em aberto</h2>${table(["Devedor", "Compras", "Total", ""], state.fiadoGroups.map((group, index) => `<tr><td>${esc(group.debtorName)}</td><td>${group.sales.length}</td><td>${money(group.total)}</td><td class="right"><button class="primary" onclick="fiadoGroupDetails(${index})">Detalhes</button><button class="success" onclick="settleFiadoGroup(${index})">Quitar tudo</button></td></tr>`))}</div>
-      <div class="card"><h2>Quitados</h2>${table(["Data", "Devedor", "Total"], settled.slice(0, 12).map(sale => `<tr><td>${shortDate(sale.settledAt)}</td><td>${esc(sale.debtorName)}</td><td>${money(sale.total)}</td></tr>`))}</div>
+      <div class="card"><h2>Devedores da TUFI</h2><p class="muted">Nomes fixos da casa para aparecerem no caixa quando vender fiado.</p>${table(["Nome", "Divida atual", ""], houseRows)}</div>
     </section>
+    <section class="card" style="margin-top:14px"><h2>Quitados</h2>${table(["Data", "Devedor", "Total"], settled.slice(0, 12).map(sale => `<tr><td>${shortDate(sale.settledAt)}</td><td>${esc(sale.debtorName)}</td><td>${money(sale.total)}</td></tr>`))}</section>
   `;
+}
+
+async function openHouseDebtorForm(id = null) {
+  const debtor = id ? await getOne("house_debtors", id) : null;
+  modal(`
+    <div class="modal-head">
+      <h2>${id ? "Editar devedor da TUFI" : "Novo devedor da TUFI"}</h2>
+      <button class="ghost" onclick="closeModal()">Fechar</button>
+    </div>
+    <p class="muted">Cadastre aqui os nomes fixos da casa. Eles aparecem no caixa quando a venda for fiada.</p>
+    <div class="form-grid">
+      <div class="field full"><label>Nome</label><input id="houseDebtorName" value="${esc(debtor?.name || "")}" placeholder="Ex.: Funcionario, Aluno, Cliente fixo"></div>
+      <div class="field full"><label>Observacao</label><textarea id="houseDebtorNotes" placeholder="Opcional">${esc(debtor?.notes || "")}</textarea></div>
+    </div>
+    <div class="toolbar" style="margin-top:14px">
+      <button class="primary" onclick="saveHouseDebtor(${id || "null"})">Salvar devedor</button>
+      <button class="secondary" onclick="closeModal()">Cancelar</button>
+    </div>
+  `, "small");
+  setTimeout(() => document.getElementById("houseDebtorName")?.focus(), 30);
+}
+
+async function saveHouseDebtor(id = null) {
+  try {
+    const name = cleanText(document.getElementById("houseDebtorName").value, 100);
+    if (!name) throw new Error("Informe o nome do devedor.");
+    const alreadyExists = (await listHouseDebtors()).some(debtor => debtor.id !== id && debtorKey(debtor.name) === debtorKey(name));
+    if (alreadyExists) throw new Error("Este devedor ja esta na lista da TUFI.");
+    const notes = cleanText(document.getElementById("houseDebtorNotes").value, 220);
+    const now = nowIso();
+    const debtor = {
+      name,
+      notes,
+      createdAt: id ? (await getOne("house_debtors", id)).createdAt : now,
+      updatedAt: now
+    };
+    if (id) debtor.id = id;
+    await putOne("house_debtors", debtor);
+    closeModal();
+    toast("Devedor da TUFI salvo");
+    await renderFiados();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function deleteHouseDebtor(id) {
+  const debtor = await getOne("house_debtors", id);
+  if (!debtor) return;
+  if (!confirm(`Excluir ${debtor.name} da lista fixa da TUFI? As vendas ja registradas continuam salvas.`)) return;
+  await deleteOne("house_debtors", id);
+  toast("Devedor removido da lista fixa");
+  await renderFiados();
 }
 
 function fiadoGroupDetails(index) {
@@ -114,87 +210,3 @@ async function saveSettlement(index) {
   }
 }
 
-async function renderStock() {
-  const movements = (await all("stock_movements")).sort((a, b) => b.id - a.id);
-  main.innerHTML = title("Estoque", "Historico de entradas, retiradas e correcoes.", `<button class="primary" onclick="showPage('products')">Ajustar produto</button>`) + `
-    <div class="card">
-      ${table(["Data", "Produto", "Acao", "Qtd", "Antes", "Depois", "Operador", "Obs", ""], movements.map(move => `<tr><td>${dateTime(move.date)}</td><td>${esc(move.productName)}</td><td>${stockTypeName(move.type)}</td><td>${move.quantity}</td><td>${move.previousQuantity}</td><td>${move.newQuantity}</td><td>${esc(move.operatorName)}</td><td>${esc(move.notes || "-")}</td><td>${canUndoStock(move, movements) ? `<button class="danger" onclick="undoStock(${move.id})">Desfazer</button>` : "-"}</td></tr>`))}
-    </div>
-  `;
-}
-
-function stockTypeName(type) {
-  return { entrada: "Adicionado", saida: "Retirado", ajuste: "Saldo corrigido", cancelamento: "Cancelamento" }[type] || type;
-}
-
-function canUndoStock(move, movements) {
-  if (!["entrada", "saida", "ajuste"].includes(move.type)) return false;
-  const latest = movements.filter(item => item.productId === move.productId).sort((a, b) => b.id - a.id)[0];
-  return latest && latest.id === move.id;
-}
-
-async function undoStock(id) {
-  try {
-    const movements = await all("stock_movements");
-    const move = movements.find(item => item.id === id);
-    if (!move || !canUndoStock(move, movements)) throw new Error("So e possivel desfazer a ultima movimentacao deste produto.");
-    if (!confirm("Desfazer esta movimentacao? O estoque voltara ao valor anterior.")) return;
-    const product = await getOne("products", move.productId);
-    if (!product) throw new Error("Produto nao encontrado.");
-    product.quantity = move.previousQuantity;
-    product.updatedAt = nowIso();
-    await putOne("products", product);
-    await deleteOne("stock_movements", id);
-    toast("Movimentacao desfeita");
-    await renderStock();
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-async function renderReports() {
-  main.innerHTML = title("Relatorios", "Faturamento, lucro estimado e produtos vendidos.", `<button class="secondary" onclick="loadReport()">Atualizar</button>`) + `
-    <div class="toolbar" style="margin-bottom:14px">
-      <input id="reportFrom" type="date" value="${today()}">
-      <input id="reportTo" type="date" value="${today()}">
-    </div>
-    <div id="reportBox"></div>
-  `;
-  document.getElementById("reportFrom").addEventListener("input", loadReport);
-  document.getElementById("reportTo").addEventListener("input", loadReport);
-  await loadReport();
-}
-
-async function loadReport() {
-  const from = document.getElementById("reportFrom").value;
-  const to = document.getElementById("reportTo").value;
-  const sales = (await all("sales")).filter(sale => {
-    const date = sale.date.slice(0, 10);
-    return sale.status === "ativa" && (!from || date >= from) && (!to || date <= to);
-  });
-  const total = sales.reduce((sum, sale) => sum + sale.total, 0);
-  const discounts = sales.reduce((sum, sale) => sum + sale.discount, 0);
-  const profit = sales.reduce((sum, sale) => sum + sale.items.reduce((itemSum, item) => itemSum + ((item.unitPrice - item.productCost) * item.quantity), 0), 0);
-  const payments = {};
-  const products = {};
-  sales.forEach(sale => {
-    if (!payments[sale.paymentMethod]) payments[sale.paymentMethod] = { method: sale.paymentMethod, count: 0, total: 0 };
-    payments[sale.paymentMethod].count += 1;
-    payments[sale.paymentMethod].total += sale.total;
-    sale.items.forEach(item => {
-      if (!products[item.productName]) products[item.productName] = { name: item.productName, quantity: 0, total: 0 };
-      products[item.productName].quantity += item.quantity;
-      products[item.productName].total += item.subtotal;
-    });
-  });
-  const paymentRows = Object.values(payments).sort((a, b) => b.total - a.total);
-  const productRows = Object.values(products).sort((a, b) => b.quantity - a.quantity);
-  document.getElementById("reportBox").innerHTML = `
-    <section class="grid stats">
-      <div class="card stat"><div class="label">Vendas</div><div class="value">${sales.length}</div><div class="sub">periodo</div></div>
-      <div class="card stat"><div class="label">Faturamento</div><div class="value">${money(total)}</div><div class="sub">vendas ativas</div></div>
-      <div class="card stat"><div class="label">Lucro estimado</div><div class="value">${money(profit)}</div><div class="sub">preco menos custo</div></div>
-      <div class="card stat"><div class="label">Ticket medio</div><div class="value">${money(sales.length ? total / sales.length : 0)}</div><div class="sub">por venda</div></div>
-      <div class="card stat"><div class="label">Descontos</div><div class="value">${money(discounts)}</div><div class="sub">concedidos</div></div>
-    </section>
-    <section class="grid two" style="margin-top:14px">
