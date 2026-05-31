@@ -1,3 +1,31 @@
+        <small>Quando chegar nesse numero ou menos, o app avisa no dashboard.</small>
+      </div>
+      <label class="check-field"><input type="checkbox" id="pActive" ${product?.active === false ? "" : "checked"}><span>Ativo para venda</span></label>
+    </div>
+    <div class="toolbar" style="margin-top:14px">
+      <button class="primary" onclick="saveProduct(${id || "null"})">Salvar produto</button>
+      <button class="secondary" onclick="closeModal()">Cancelar</button>
+    </div>
+  `);
+  toggleCustomCategory();
+}
+
+function toggleCustomCategory() {
+  const select = document.getElementById("pCategorySelect");
+  const wrap = document.getElementById("customCategoryWrap");
+  if (!select || !wrap) return;
+  wrap.classList.toggle("hidden", select.value !== "__custom__");
+  if (select.value === "__custom__") document.getElementById("pCategoryCustom")?.focus();
+}
+
+async function saveProduct(id = null) {
+  try {
+    const name = cleanText(document.getElementById("pName").value, 100);
+    const categorySelect = document.getElementById("pCategorySelect").value;
+    const category = cleanText(categorySelect === "__custom__" ? document.getElementById("pCategoryCustom").value : categorySelect, 70);
+    if (!name || !category) throw new Error("Preencha nome e categoria.");
+    const now = nowIso();
+    const product = {
       name,
       category,
       price: numberValue(document.getElementById("pPrice").value, "Preco"),
@@ -9,11 +37,13 @@
       createdAt: id ? (await getOne("products", id)).createdAt : now,
       updatedAt: now
     };
+    if (id) product.id = id;
     await putOne("products", product);
     closeModal();
     toast("Produto salvo");
     await renderProducts();
   } catch (error) {
+    console.error(error);
     alert(error.message);
   }
 }
@@ -108,6 +138,7 @@ async function saveStock(id) {
     toast("Estoque atualizado");
     await renderProducts();
   } catch (error) {
+    console.error(error);
     alert(error.message);
   }
 }
@@ -115,6 +146,10 @@ async function saveStock(id) {
 async function renderSale() {
   await refreshData();
   const available = state.products.filter(product => product.active && product.quantity > 0);
+  const houseDebtors = await listHouseDebtors();
+  const debtorOptions = houseDebtors.length
+    ? `<option value="">Selecione um devedor da TUFI</option>${houseDebtors.map(debtor => `<option value="${esc(debtor.name)}">${esc(debtor.name)}</option>`).join("")}<option value="__custom__">Outro nome</option>`
+    : `<option value="__custom__">Digitar nome</option>`;
   main.innerHTML = title("Caixa", "Venda rapida para tocar no produto e fechar pagamento.", `<button class="secondary" onclick="clearCart()">Limpar carrinho</button>`) + `
     <div class="sale-layout">
       <section class="sale-panel">
@@ -141,7 +176,12 @@ async function renderSale() {
           <div class="form-grid" style="margin-top:12px">
             <div class="field"><label>Operador</label><input id="saleOperator" value="${esc(state.operator)}"></div>
             <div class="field"><label>Cliente</label><input id="customerName" placeholder="Opcional"></div>
-            <div class="field full hidden" id="debtorWrap"><label>Nome do devedor</label><input id="debtorName"></div>
+            <div class="field full hidden" id="debtorWrap">
+              <label>Devedor</label>
+              <select id="debtorSelect" onchange="toggleDebtorName()">${debtorOptions}</select>
+              <small>Os nomes fixos ficam em Fiados > Devedores da TUFI.</small>
+            </div>
+            <div class="field full hidden" id="debtorCustomWrap"><label>Nome do devedor</label><input id="debtorName" placeholder="Digite o nome"></div>
             <div class="field"><label>Desconto</label><input id="discountValue" inputmode="decimal" value="0" oninput="updateCheckout()"></div>
             <div class="field" id="receivedWrap"><label>Recebido</label><input id="receivedValue" inputmode="decimal" value="0" oninput="updateCheckout()"></div>
             <div class="field full"><label>Observacao</label><textarea id="saleNotes" placeholder="Opcional"></textarea></div>
@@ -170,31 +210,3 @@ function setSaleCategory(category) {
   document.getElementById("saleCategory").value = category;
   renderSaleCategories();
   renderCatalog();
-}
-
-function renderCatalog() {
-  const search = cleanText(document.getElementById("saleSearch")?.value || "", 120).toLowerCase();
-  const category = document.getElementById("saleCategory")?.value || "";
-  const list = state.products.filter(product =>
-    product.active &&
-    product.quantity > 0 &&
-    (!category || product.category === category) &&
-    (!search || product.name.toLowerCase().includes(search) || product.category.toLowerCase().includes(search))
-  );
-  document.getElementById("catalog").innerHTML = list.map(product => `
-    <button class="product-card" onclick="addCart(${product.id})" title="${esc(product.name)}">
-      <span class="prod-meta">${esc(product.category)} | ${product.quantity} em estoque</span>
-      <span class="prod-name">${esc(product.name)}</span>
-      <span class="prod-bottom"><span class="prod-price">${money(product.price)}</span><span class="prod-add">+</span></span>
-    </button>
-  `).join("") || `<div class="empty">Nenhum produto disponivel.</div>`;
-}
-
-function addCart(id) {
-  const product = state.products.find(item => item.id === id);
-  if (!product) return;
-  const item = state.cart.find(cartItem => cartItem.productId === id);
-  if (item) {
-    if (item.quantity >= product.quantity) {
-      alert("Nao ha mais estoque disponivel para esse produto.");
-      return;
