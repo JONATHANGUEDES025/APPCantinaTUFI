@@ -1,4 +1,4 @@
-const CACHE_NAME = "cantina-tufi-ipad-v7";
+const CACHE_NAME = "cantina-tufi-ipad-v15";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -11,7 +11,8 @@ const APP_FILES = [
   "./app.part5.js",
   "./app.part6.js",
   "./manifest.webmanifest",
-  "./icon.svg"
+  "./icon.svg",
+  "./assets/logo_tufi.svg"
 ];
 
 self.addEventListener("install", event => {
