@@ -10,10 +10,10 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "./icon.svg",
-      "sizes": "any",
+      "src": "./assets/logo_tufi.svg",
+      "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
