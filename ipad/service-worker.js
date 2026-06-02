@@ -10,6 +10,7 @@ const APP_FILES = [
   "./app.part4.js",
   "./app.part5.js",
   "./app.part6.js",
+  "./patch-v15.js",
   "./manifest.webmanifest",
   "./icon.svg",
   "./assets/logo_tufi.svg"
