@@ -9,7 +9,7 @@
   ];
 
   try {
-    const [parts, adjustments] = await Promise.all([
+    const [parts, adjustments, catalogFix] = await Promise.all([
       Promise.all(chunks.map(async path => {
         const response = await fetch(`${path}?v=20`);
         if (!response.ok) throw new Error(`Nao foi possivel carregar ${path}`);
@@ -18,10 +18,14 @@
       fetch("./final-adjustments-v19.js?v=20").then(response => {
         if (!response.ok) throw new Error("Nao foi possivel carregar os ajustes finais.");
         return response.text();
+      }),
+      fetch("./catalog-visible-v20.js?v=20").then(response => {
+        if (!response.ok) throw new Error("Nao foi possivel carregar a vitrine do caixa.");
+        return response.text();
       })
     ]);
     const script = document.createElement("script");
-    script.textContent = `${parts.join("\n")}\n${adjustments}\n//# sourceURL=cantina-tufi-ipad-v19.js`;
+    script.textContent = `${parts.join("\n")}\n${adjustments}\n${catalogFix}\n//# sourceURL=cantina-tufi-ipad-v19.js`;
     document.head.appendChild(script);
   } catch (error) {
     console.error(error);
