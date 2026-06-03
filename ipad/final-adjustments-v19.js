@@ -42,6 +42,7 @@
   style.textContent = `
     .sale-done{display:grid;gap:8px;text-align:center;padding:18px 8px 14px}.sale-done h2{margin:0;color:var(--green);font-size:28px}.sale-done p{margin:0;color:var(--muted);font-size:15px}.sale-done strong{color:var(--brand);font-size:26px}
     .actions-cell{min-width:270px;text-align:right;white-space:normal}.actions-cell button{padding:8px 10px;margin:2px}#productsTable table th:last-child{min-width:270px;text-align:right}
+    .product-card.out-of-stock{opacity:.68;cursor:not-allowed}.product-card.out-of-stock .prod-add{background:#9aa8b2}
   `;
   document.head.appendChild(style);
 
@@ -57,43 +58,59 @@
 
   async function seedDefaultData() {
     if (window.__cantinaTufiFinalSeedDone) return;
-    window.__cantinaTufiFinalSeedDone = true;
-    const now = nowIso();
-    const debtors = await all("house_debtors");
-    const debtorsByKey = new Map(debtors.map(debtor => [key(debtor.name), debtor]));
-    for (const name of HOUSE_DEBTOR_SEEDS) {
-      const existing = debtorsByKey.get(key(name));
-      if (existing) {
-        if (existing.name !== name) {
-          existing.name = name;
-          existing.updatedAt = now;
-          await putOne("house_debtors", existing);
+    if (window.__cantinaTufiFinalSeedPromise) return window.__cantinaTufiFinalSeedPromise;
+    window.__cantinaTufiFinalSeedPromise = (async () => {
+      const now = nowIso();
+      const debtors = await all("house_debtors");
+      const debtorsByKey = new Map(debtors.map(debtor => [key(debtor.name), debtor]));
+      for (const name of HOUSE_DEBTOR_SEEDS) {
+        const currentKey = key(name);
+        const existing = debtorsByKey.get(currentKey);
+        if (existing) {
+          if (existing.name !== name) {
+            existing.name = name;
+            existing.updatedAt = now;
+            await putOne("house_debtors", existing);
+          }
+        } else {
+          const debtor = { name, notes: "", createdAt: now, updatedAt: now };
+          debtor.id = await putOne("house_debtors", debtor);
+          debtorsByKey.set(currentKey, debtor);
         }
-      } else {
-        await putOne("house_debtors", { name, notes: "", createdAt: now, updatedAt: now });
       }
-    }
 
-    const products = await all("products");
-    const productsByKey = new Map(products.map(product => [key(product.name), product]));
-    for (const item of PRODUCT_SEEDS) {
-      const existing = productsByKey.get(key(item.name));
-      if (existing) {
-        existing.name = item.name;
-        existing.category = item.category;
-        existing.price = item.price;
-        existing.cost = item.cost;
-        existing.unit = existing.unit || "Unidade";
-        existing.minStock = Number.isFinite(Number(existing.minStock)) ? Number(existing.minStock) : 0;
-        existing.quantity = Number.isFinite(Number(existing.quantity)) ? Number(existing.quantity) : 0;
-        existing.active = existing.active !== false;
-        existing.updatedAt = now;
-        await putOne("products", existing);
-      } else {
-        await putOne("products", { name: item.name, category: item.category, price: item.price, cost: item.cost, unit: "Unidade", minStock: 0, quantity: 0, active: true, createdAt: now, updatedAt: now });
+      const products = await all("products");
+      const productsByKey = new Map(products.map(product => [key(product.name), product]));
+      for (const item of PRODUCT_SEEDS) {
+        const currentKey = key(item.name);
+        const existing = productsByKey.get(currentKey);
+        if (existing) {
+          existing.name = item.name;
+          existing.category = item.category;
+          existing.price = item.price;
+          existing.cost = item.cost;
+          existing.unit = existing.unit || "Unidade";
+          existing.minStock = Number.isFinite(Number(existing.minStock)) ? Number(existing.minStock) : 0;
+          existing.quantity = Number.isFinite(Number(existing.quantity)) ? Number(existing.quantity) : 0;
+          existing.active = existing.active !== false;
+          existing.updatedAt = now;
+          await putOne("products", existing);
+        } else {
+          const product = { name: item.name, category: item.category, price: item.price, cost: item.cost, unit: "Unidade", minStock: 0, quantity: 0, active: true, createdAt: now, updatedAt: now };
+          product.id = await putOne("products", product);
+          productsByKey.set(currentKey, product);
+        }
       }
+      await refreshData();
+      window.__cantinaTufiFinalSeedDone = true;
+      window.__cantinaTufiSeedReport = { products: PRODUCT_SEEDS.length, debtors: HOUSE_DEBTOR_SEEDS.length };
+    })();
+    try {
+      await window.__cantinaTufiFinalSeedPromise;
+    } catch (error) {
+      window.__cantinaTufiFinalSeedPromise = null;
+      throw error;
     }
-    await refreshData();
   }
 
   function normalizePaymentUi(root = document) {
@@ -161,6 +178,53 @@
     };
   }
 
+  function patchCatalog() {
+    renderCatalog = function patchedRenderCatalog() {
+      const search = cleanText(document.getElementById("saleSearch")?.value || "", 120).toLowerCase();
+      const category = document.getElementById("saleCategory")?.value || "";
+      const list = state.products.filter(product =>
+        product.active &&
+        (!category || product.category === category) &&
+        (!search || product.name.toLowerCase().includes(search) || product.category.toLowerCase().includes(search))
+      );
+      document.getElementById("catalog").innerHTML = list.map(product => `
+        <button class="product-card ${product.quantity <= 0 ? "out-of-stock" : ""}" onclick="${product.quantity <= 0 ? "" : `addCart(${product.id})`}" title="${esc(product.name)}" ${product.quantity <= 0 ? "disabled" : ""}>
+          <span class="prod-meta">${esc(product.category)} | ${product.quantity > 0 ? `${product.quantity} em estoque` : "Sem estoque"}</span>
+          <span class="prod-name">${esc(product.name)}</span>
+          <span class="prod-bottom"><span class="prod-price">${money(product.price)}</span><span class="prod-add">${product.quantity > 0 ? "+" : "0"}</span></span>
+        </button>
+      `).join("") || `<div class="empty">Nenhum produto cadastrado.</div>`;
+    };
+  }
+
+  function patchFiadosPage() {
+    renderFiados = async function renderFiados() {
+      const sales = (await all("sales")).filter(sale => sale.paymentMethod === "Fiado" && sale.status === "ativa");
+      const houseDebtors = await listHouseDebtors();
+      const groups = new Map();
+      sales.filter(sale => !sale.settledAt).forEach(sale => {
+        const currentKey = debtorKey(sale.debtorName);
+        if (!groups.has(currentKey)) groups.set(currentKey, { debtorName: sale.debtorName, sales: [], total: 0 });
+        const group = groups.get(currentKey);
+        group.sales.push(sale);
+        group.total += sale.total;
+      });
+      state.fiadoGroups = [...groups.values()].sort((a, b) => a.debtorName.localeCompare(b.debtorName, "pt-BR", { sensitivity: "base" }));
+      const settled = sales.filter(sale => sale.settledAt).sort((a, b) => new Date(b.settledAt) - new Date(a.settledAt));
+      const houseRows = houseDebtors.map(debtor => {
+        const group = groups.get(debtorKey(debtor.name));
+        return `<tr><td>${esc(debtor.name)}</td><td>${group ? money(group.total) : money(0)}</td><td class="right"><button class="primary" onclick="openHouseDebtorForm(${debtor.id})">Editar</button><button class="ghost" onclick="deleteHouseDebtor(${debtor.id})">Excluir</button></td></tr>`;
+      });
+      main.innerHTML = title("Devedores da TUFI", "Nomes fixos e compras fiadas organizadas por cliente.", `<button class="primary" onclick="openHouseDebtorForm()">Novo devedor da TUFI</button>`) + `
+        <section class="grid two">
+          <div class="card"><h2>Devedores da TUFI</h2><p class="muted">Lista fixa que aparece no caixa quando a venda for fiada.</p>${table(["Nome", "Dívida atual", ""], houseRows)}</div>
+          <div class="card"><h2>Dívidas abertas</h2><p class="muted">Compras fiadas que ainda precisam ser quitadas.</p>${table(["Cliente", "Compras", "Total", ""], state.fiadoGroups.map((group, index) => `<tr><td>${esc(group.debtorName)}</td><td>${group.sales.length}</td><td>${money(group.total)}</td><td class="right"><button class="primary" onclick="fiadoGroupDetails(${index})">Ver compras</button><button class="success" onclick="settleFiadoGroup(${index})">Quitar todas</button></td></tr>`))}</div>
+        </section>
+        <section class="card" style="margin-top:14px"><h2>Pagamentos quitados</h2>${table(["Data", "Cliente", "Forma", "Total"], settled.slice(0, 12).map(sale => `<tr><td>${shortDate(sale.settledAt)}</td><td>${esc(sale.debtorName)}</td><td>${esc(normalizePayment(sale.settlementMethod) || "-")}</td><td>${money(sale.total)}</td></tr>`))}</section>
+      `;
+    };
+  }
+
   function patchSaleSuccess() {
     showSaleSuccess = function showSaleSuccess(sale) {
       modal(`<div class="sale-done"><h2>Venda concluída</h2><p>A venda foi registrada com sucesso.</p><strong>${money(sale.total)}</strong></div>`, "small");
@@ -187,6 +251,8 @@
     patchLists();
     patchProductTable();
     patchPayment();
+    patchCatalog();
+    patchFiadosPage();
     patchSaleSuccess();
     normalizePaymentUi();
     seedDefaultData().then(async () => {
