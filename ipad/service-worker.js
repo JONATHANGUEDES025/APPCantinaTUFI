@@ -5,7 +5,6 @@ const APP_FILES = [
   "./styles.css",
   "./app-v19.js",
   "./final-adjustments-v19.js",
-  "./final-adjustments-v21.js",
   "./catalog-visible-v20.js",
   "./app.js",
   "./app.part1.js",
