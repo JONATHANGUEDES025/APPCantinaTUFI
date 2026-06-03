@@ -19,7 +19,7 @@
       appSource.includes("const PRODUCT_SEEDS") &&
       appSource.includes("Pix da Mãe Mag") &&
       appSource.includes("Novo devedor da TUFI");
-    const [adjustments, catalogFix, v21Fix] = await Promise.all([
+    const [adjustments, catalogFix] = await Promise.all([
       appAlreadyHasFinalData ? Promise.resolve("") : fetch("./final-adjustments-v19.js?v=21").then(response => {
         if (!response.ok) throw new Error("Nao foi possivel carregar os ajustes finais.");
         return response.text();
@@ -27,14 +27,10 @@
       fetch("./catalog-visible-v20.js?v=21").then(response => {
         if (!response.ok) throw new Error("Nao foi possivel carregar a vitrine do caixa.");
         return response.text();
-      }),
-      fetch("./final-adjustments-v21.js?v=21").then(response => {
-        if (!response.ok) throw new Error("Nao foi possivel carregar os ajustes v21.");
-        return response.text();
       })
     ]);
     const script = document.createElement("script");
-    script.textContent = `${appSource}\n${adjustments}\n${catalogFix}\n${v21Fix}\n//# sourceURL=cantina-tufi-ipad-v21.js`;
+    script.textContent = `${appSource}\n${adjustments}\n${catalogFix}\n//# sourceURL=cantina-tufi-ipad-v21.js`;
     document.head.appendChild(script);
   } catch (error) {
     console.error(error);
