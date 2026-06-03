@@ -11,11 +11,11 @@
   try {
     const [parts, adjustments] = await Promise.all([
       Promise.all(chunks.map(async path => {
-        const response = await fetch(`${path}?v=19`);
+        const response = await fetch(`${path}?v=20`);
         if (!response.ok) throw new Error(`Nao foi possivel carregar ${path}`);
         return response.text();
       })),
-      fetch("./final-adjustments-v19.js?v=19").then(response => {
+      fetch("./final-adjustments-v19.js?v=20").then(response => {
         if (!response.ok) throw new Error("Nao foi possivel carregar os ajustes finais.");
         return response.text();
       })
