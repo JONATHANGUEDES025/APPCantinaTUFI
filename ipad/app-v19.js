@@ -1,0 +1,33 @@
+(async function loadCantinaTufiIpadV19() {
+  const chunks = [
+    "./app.part1.js",
+    "./app.part2.js",
+    "./app.part3.js",
+    "./app.part4.js",
+    "./app.part5.js",
+    "./app.part6.js"
+  ];
+
+  try {
+    const [parts, adjustments] = await Promise.all([
+      Promise.all(chunks.map(async path => {
+        const response = await fetch(`${path}?v=19`);
+        if (!response.ok) throw new Error(`Nao foi possivel carregar ${path}`);
+        return response.text();
+      })),
+      fetch("./final-adjustments-v19.js?v=19").then(response => {
+        if (!response.ok) throw new Error("Nao foi possivel carregar os ajustes finais.");
+        return response.text();
+      })
+    ]);
+    const script = document.createElement("script");
+    script.textContent = `${parts.join("\n")}\n${adjustments}\n//# sourceURL=cantina-tufi-ipad-v19.js`;
+    document.head.appendChild(script);
+  } catch (error) {
+    console.error(error);
+    const main = document.getElementById("main");
+    if (main) {
+      main.innerHTML = `<div class="card"><h2>Erro ao abrir</h2><p>Atualize a pagina ou confira se todos os arquivos do aplicativo foram enviados para o GitHub.</p></div>`;
+    }
+  }
+})();
