@@ -1,4 +1,4 @@
-const CACHE_NAME = "cantina-tufi-ipad-v21";
+const CACHE_NAME = "cantina-tufi-ipad-v22";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const APP_FILES = [
   "./final-adjustments-v19.js",
   "./catalog-visible-v20.js",
   "./app.js",
+  "./app-v22-updates.js",
   "./app.part1.js",
   "./app.part2.js",
   "./app.part3.js",
