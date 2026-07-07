@@ -1,10 +1,11 @@
-const CACHE_NAME = "cantina-tufi-ipad-v23";
+const CACHE_NAME = "cantina-tufi-ipad-v24";
 const APP_FILES = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./app-v23-fixes.js",
+  "./app-v24-prod-fixes.js",
   "./manifest.webmanifest",
   "./icon.svg",
   "./assets/logo_tufi.svg"
